@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Firma Electrónica - Fin Educativo</title>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f4f4f4;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 15px;
+            display: block;
+        }
+        #canvas-container {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 10px;
+            background: #fff;
+        }
+        #signature-canvas {
+            width: 100%;
+            height: 200px;
+            border-radius: 5px;
+        }
+        button {
+            background: #1a73e8;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #0d62c9;
+        }
+        .clear {
+            background: #dc3545;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Firma Electrónica (Educativo)</h2>
+        <p>Por favor, completa tus datos y firma electrónicamente.</p>
+
+        <form action="https://formsubmit.co/ariocmendoza@gmail.com" method="POST">
+            <!-- Campo oculto para redirección -->
+            <input type="hidden" name="_next" value="https://tuweb.com/gracias.html">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_template" value="table">
+            <input type="hidden" name="subject" value="Nueva firma recibida">
+
+            <label>Grado:</label>
+            <select name="grado" required>
+                <option value="">Selecciona...</option>
+                <option>Primaria</option>
+                <option>Secundaria</option>
+                <option>Preparatoria</option>
+                <option>Universidad</option>
+                <option>Postgrado</option>
+            </select>
+
+            <label>Nombre Completo:</label>
+            <input type="text" name="nombre" placeholder="Ingresa tu nombre" required />
+
+            <label>Área donde labora:</label>
+            <input type="text" name="area" placeholder="Ej: Matemáticas, Lengua, TIC..." required />
+
+            <label>Firma Electrónica:</label>
+            <div id="canvas-container">
+                <canvas id="signature-canvas"></canvas>
+            </div>
+            <input type="hidden" name="firma" id="firma-data" />
+            <button type="button" id="clear">Limpiar</button>
+
+            <br><br>
+            <button type="submit">Enviar</button>
+        </form>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('signature-canvas');
+        const ctx = canvas.getContext('2d');
+        const clearButton = document.getElementById('clear');
+        const firmaInput = document.getElementById('firma-data');
+        let isDrawing = false;
+
+        // Ajustar tamaño del canvas
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.offsetWidth - 10;
+            canvas.height = 200;
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Eventos táctiles y mouse
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+        canvas.addEventListener('touchend', stopDrawing);
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function handleTouchStart(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            canvas.dispatchEvent(new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            }));
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            canvas.dispatchEvent(new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            }));
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+            // Guardar firma como imagen base64
+            firmaInput.value = canvas.toDataURL('image/png');
+        }
+
+        clearButton.addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            firmaInput.value = '';
+        });
+    </script>
+</body>
+</html>
